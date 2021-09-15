@@ -23,6 +23,14 @@ function embedded_msg(msg){
     return message;
 }; 
 
+function embedded_msg_error(msg){
+    const message = new Discord.MessageEmbed()
+	.setColor('#dc143c')
+	.setDescription(msg)
+
+    return message;
+}; 
+
 function embedded_bold(msg){
     const message = new Discord.MessageEmbed()
 	.setColor('#0099ff')
@@ -93,7 +101,7 @@ client.on("message", async (message) => {
         if (arr.length != 0)
             execute(message, server_queue, current_cmd.length);
         else 
-            message.channel.send(embedded_msg(`Es wurde kein Songtitel bzw. keine URL angegeben [<@${message.author.id}>]`));
+            message.channel.send(embedded_msg_error(`Es wurde kein Songtitel bzw. keine URL angegeben [<@${message.author.id}>]`));
     }
     else if (current_cmd == "stop") {
         stop(message, server_queue);
@@ -110,20 +118,25 @@ client.on("message", async (message) => {
             message.delete();
         }
         else 
-            message.channel.send(embedded_msg(`Es wurde keine Frage angegeben [<@${message.author.id}>]`))
+            message.channel.send(embedded_msg_error(`Es wurde keine Frage angegeben [<@${message.author.id}>]`))
     }
     else if (current_cmd == "clear") {
+        const perms = message.channel.permissionsFor(message.author.id);
+        if (!perms.has("MANAGE_MESSAGES")) {
+            message.channel.send(embedded_msg_error(`Du hast keine Rechte diesen Command auszuführen [<@${message.author.id}>]`));
+            return;
+        }
         if (arr.length != 0) {
             let num = parseInt(arr[0]);
             if (!Number.isNaN(num)) {
                 do_clear(message.channel, num + 1);
             }
             else {
-                message.channel.send(embedded_msg(`Es wurde keine Anzahl angegeben [<@${message.author.id}>]`));
+                message.channel.send(embedded_msg_error(`Es wurde keine Anzahl angegeben [<@${message.author.id}>]`));
             }
         }
         else {
-            message.channel.send(embedded_msg(`Es wurde keine Anzahl angegeben [<@${message.author.id}>]`));
+            message.channel.send(embedded_msg_error(`Es wurde keine Anzahl angegeben [<@${message.author.id}>]`));
         }
     }
     else if (current_cmd == "roll") {
@@ -158,12 +171,12 @@ async function execute(message, server_queue, cmd_len) {
     const voice_channel = message.member.voice.channel;
     if (!voice_channel)
       return message.channel.send(
-        embedded_msg(`Du bist nicht in einem Voice Channel [<@${message.author.id}>]`)
+        embedded_msg_error(`Du bist nicht in einem Voice Channel [<@${message.author.id}>]`)
       );
     const permissions = voice_channel.permissionsFor(message.client.user);
     if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
       return message.channel.send(
-        embedded_msg(`Ich habe keine Rechte den Channel zu joinen [<@${message.author.id}>]`)
+        embedded_msg_error(`Ich habe keine Rechte den Channel zu joinen [<@${message.author.id}>]`)
       );
     }
 
@@ -245,7 +258,7 @@ function skip(message, server_queue) {
         `Du bist nicht in einem Voice Channel <@${message.author.id}>`);
 
     if (!server_queue) {
-        return message.channel.send(embedded_msg(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
+        return message.channel.send(embedded_msg_error(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
     }
 
     message.channel.send(embedded_msg(`Übersprungen: **${server_queue.songs[0].title}** [<@${message.author.id}>]`))
@@ -255,7 +268,7 @@ function skip(message, server_queue) {
 let should_stop = false;
 function stop(message, server_queue) {     
     if (!server_queue)
-        return message.channel.send(embedded_msg(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
+        return message.channel.send(embedded_msg_error(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
       
     server_queue.songs = [];
     server_queue.connection.dispatcher.end();
