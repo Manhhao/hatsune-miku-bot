@@ -40,20 +40,20 @@ function embedded_bold(msg){
 }; 
 
 function do_8ball(message, question) {
-    var rand = ['It is certain.', 'It is decidedly so.', 'Without a doubt.', 'Yes – definitely.', 'You may rely on it.', 'As I see it, yes.', 'Most likely.', 'Outlook good.',
+    var answers = ['It is certain.', 'It is decidedly so.', 'Without a doubt.', 'Yes – definitely.', 'You may rely on it.', 'As I see it, yes.', 'Most likely.', 'Outlook good.',
     'Yes.', 'Signs point to yes.', 'Reply hazy, try again.', 'Ask again later.', 'Better not tell you now.', 'Cannot predict now.', 'Concentrate and ask again.',
     'Don’t count on it.', 'My reply is no.', 'My sources say no.', 'Outlook not so good.', 'Very doubtful.'];
 
     const embed = new Discord.MessageEmbed()
     .setColor('#0099ff')
     .setTitle(`${question}`)
-    .setDescription(`${rand[Math.floor(Math.random()*rand.length)]}\n\ngefragt von [<@${message.author.id}>]`)
+    .setDescription(`${answers[Math.round(Math.random()*answers.length)]}\n\ngefragt von [<@${message.author.id}>]`)
 
     return embed;
 }
 
 function do_roll(max = 100) {
-    return Math.floor(Math.random()*max);
+    return Math.round(Math.random()*max);
 }
 
 function do_help(message) {
