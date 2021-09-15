@@ -147,7 +147,11 @@ function skip(message, server_queue) {
     if (!server_queue) {
         return message.channel.send(embedded_msg("Keine Lieder in der Queue"));
     }
+
+    message.channel.send(embedded_msg("Alle Lieder wurden aus der Queue gelöscht"))
     server_queue.connection.dispatcher.end();
+    server_queue.voice_channel.leave();
+    queue.delete(guild.id);
 }
   
 function stop(message, server_queue) {     
