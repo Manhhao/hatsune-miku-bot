@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 const { token, prefix } = require("./config.json");
 const ytdl = require("ytdl-core");
-const yts = require("yt-search");
+const ytsr = require ("ytsr");
 
 const client = new Discord.Client();
 
@@ -72,8 +72,8 @@ async function execute(message, server_queue, cmd_len) {
     const arg = message.content.slice(prefix.length + cmd_len + 1);
     
     const video_finder = async (query) =>{
-        const video_result = await yts(query);
-        return (video_result.videos.length > 1) ? video_result.videos[0] : null;
+        const video_result = await ytsr(query, { limit: 1 });
+        return (video_result.items.length > 0) ? video_result.items[0] : null;
     }
 
     let song = {};
@@ -158,7 +158,7 @@ function stop(message, server_queue) {
     server_queue.connection.dispatcher.end();
 }
   
-async function play(guild, song) {
+function play(guild, song) {
     const server_queue = queue.get(guild.id);
     if (!song) {
         timeout_timer = setTimeout(() => { 
