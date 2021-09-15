@@ -151,31 +151,38 @@ function skip(message, server_queue) {
     message.channel.send(embedded_msg(`Übersprungen: **${song.title}**`))
     server_queue.connection.dispatcher.end();
 }
-  
+
+let should_stop = false;
 function stop(message, server_queue) {     
     if (!server_queue)
         return message.channel.send(embedded_msg("Keine Lieder in der Queue"));
       
     server_queue.songs = [];
     server_queue.connection.dispatcher.end();
-    message.channel.send(embedded_msg("Alle Lieder wurden aus der Queue gelöscht"))
-    server_queue.voice_channel.leave();
-    queue.delete(guild.id);
+    message.channel.send(embedded_msg("Alle Lieder wurden aus der Queue gelöscht"));
+    should_stop = true;
 }
   
 function play(guild, song) {
     const server_queue = queue.get(guild.id);
     if (!song) {
-        timeout_timer = setTimeout(() => { 
-            if (!has_new_song) {
-                server_queue.voice_channel.leave();
-                queue.delete(guild.id);
+        if (!should_stop) {
+            timeout_timer = setTimeout(() => { 
+                if (!has_new_song) {
+                    server_queue.voice_channel.leave();
+                    queue.delete(guild.id);
 
-                server_queue.text_channel.send(embedded_msg("Zu lange inaktiv"));
-                return;
-            }
-        }, 180000)
-        return;
+                    server_queue.text_channel.send(embedded_msg("Zu lange inaktiv"));
+                    return;
+                }
+            }, 180000)
+            return;
+        }
+        else {
+            should_stop = false;
+            server_queue.voice_channel.leave();
+            queue.delete(guild.id);
+        }
     }
 
     if (has_new_song) {
