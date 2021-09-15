@@ -54,9 +54,9 @@ function do_help(message) {
     .setTitle("Alle Commands")
     .setDescription(`<@${message.author.id}>`)
     .addFields(
-        { name: 'Musik', value: '!play [Songtitel bzw. URL] - Spielt ein Lied ab bzw. fügt ein Lied zur Queue hinzu\n!skip - Überspringt das jetzige Lied\n!stop - Löscht die Queue und disconnected den Bot' },
-        { name: 'Fun', value: '!8ball [frage] - Gibt eine Antwort zu einer Frage wieder\n!roll [optional: obere grenze] - Gibt eine zufällige Zahl zurück zwischen 1 und der oberen Grenze wieder (default: 100)'},
-        { name: 'Anderes', value: '!clear [Anzahl der Nachrichten] - Löscht eine Anzahl von Nachrichten im Channel'}
+        { name: 'Musik', value: '-play [Songtitel bzw. URL] - Spielt ein Lied ab bzw. fügt ein Lied zur Queue hinzu\n-skip - Überspringt das jetzige Lied\n-stop - Löscht die Queue und disconnected den Bot' },
+        { name: 'Fun', value: '-8ball [frage] - Gibt eine Antwort zu einer Frage wieder\n-roll [optional: obere grenze] - Gibt eine zufällige Zahl zurück zwischen 1 und der oberen Grenze wieder (default: 100)'},
+        { name: 'Anderes', value: '-clear [Anzahl der Nachrichten] - Löscht eine Anzahl von Nachrichten im Channel'}
     )
 
     message.channel.send(embed);
@@ -142,6 +142,15 @@ client.on("message", async (message) => {
     }
     else if (current_cmd == "help") {
         do_help(message);
+    }
+    else if (current_cmd == "lars") {
+        message.channel.send(embedded_msg("ist ein geiler Stecher"));
+    }
+    else if (current_cmd == "max") {
+        message.channel.send(embedded_msg("ist ein Hurensohn"));
+    }
+    else if (current_cmd == "timo") {
+        message.channel.send(embedded_msg("ist ein Gold Pleb"));
     }
 });
 
