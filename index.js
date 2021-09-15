@@ -39,6 +39,10 @@ function do_8ball() {
     return rand[Math.floor(Math.random()*rand.length)];
 }
 
+function do_roll(max = 100) {
+    return Math.floor(Math.random()*max);
+}
+
 async function do_clear(text_channel, amount) {
     text_channel.messages.fetch({ limit: amount }).then(msgs => {
         msgs.forEach((message) => {
@@ -87,10 +91,26 @@ client.on("message", async (message) => {
     else if (current_cmd == "clear") {
         if (arr.length != 0) {
             let num = parseInt(arr[0]);
-            if (!Number.isNaN(num))
+            if (!Number.isNaN(num)) {
                 do_clear(message.channel, num + 1);
-            else
-                embedded_msg("Keine Nummer angegeben!");
+            }
+            else {
+                message.channel.send(embedded_msg("Keine Nummer angegeben!"));
+            }
+        }
+    }
+    else if (current_cmd == "roll") {
+        if (arr.length != 0) {
+            let num = parseInt(arr[0]);
+            if (!Number.isNaN(num)) {
+                message.channel.send(embedded_msg(do_roll(num)));
+            }
+            else {
+                message.channel.send(embedded_msg(do_roll()));
+            }
+        }
+        else {
+            message.channel.send(embedded_msg(do_roll()));
         }
     }
 });
