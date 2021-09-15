@@ -148,7 +148,7 @@ function skip(message, server_queue) {
         return message.channel.send(embedded_msg("Keine Lieder in der Queue"));
     }
 
-    message.channel.send(embedded_msg(`Übersprungen: **${song.title}**`))
+    message.channel.send(embedded_msg(`Übersprungen: **${server_queue.song.title}**`))
     server_queue.connection.dispatcher.end();
 }
 
