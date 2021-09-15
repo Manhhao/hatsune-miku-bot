@@ -31,16 +31,35 @@ function embedded_bold(msg){
     return message;
 }; 
 
-function do_8ball() {
+function do_8ball(message, question) {
     var rand = ['It is certain.', 'It is decidedly so.', 'Without a doubt.', 'Yes – definitely.', 'You may rely on it.', 'As I see it, yes.', 'Most likely.', 'Outlook good.',
     'Yes.', 'Signs point to yes.', 'Reply hazy, try again.', 'Ask again later.', 'Better not tell you now.', 'Cannot predict now.', 'Concentrate and ask again.',
     'Don’t count on it.', 'My reply is no.', 'My sources say no.', 'Outlook not so good.', 'Very doubtful.'];
 
-    return rand[Math.floor(Math.random()*rand.length)];
+    const embed = new Discord.MessageEmbed()
+    .setColor('#0099ff')
+    .setTitle(`${question}`)
+    .setDescription(`${rand[Math.floor(Math.random()*rand.length)]}\n\ngefragt von [<@${message.author.id}>]`)
+
+    return embed;
 }
 
 function do_roll(max = 100) {
     return Math.floor(Math.random()*max);
+}
+
+function do_help(message) {
+    const embed = new Discord.MessageEmbed()
+    .setColor('#0099ff')
+    .setTitle("Alle Commands")
+    .setDescription(`<@${message.author.id}>`)
+    .addFields(
+        { name: 'Musik', value: '!play [Songtitel bzw. URL] - Spielt ein Lied ab bzw. fügt ein Lied zur Queue hinzu\n!skip - Überspringt das jetzige Lied\n!stop - Löscht die Queue und disconnected den Bot' },
+        { name: 'Fun', value: '!8ball [frage] - Gibt eine Antwort zu einer Frage wieder\n!roll [optional: obere grenze] - Gibt eine zufällige Zahl zurück zwischen 1 und der oberen Grenze wieder (default: 100)'},
+        { name: 'Anderes', value: '!clear [Anzahl der Nachrichten] - Löscht eine Anzahl von Nachrichten im Channel'}
+    )
+
+    message.channel.send(embed);
 }
 
 async function do_clear(text_channel, amount) {
@@ -74,7 +93,7 @@ client.on("message", async (message) => {
         if (arr.length != 0)
             execute(message, server_queue, current_cmd.length);
         else 
-            message.channel.send(embedded_msg("Es wurde kein Song angegeben"));
+            message.channel.send(embedded_msg(`Es wurde kein Songtitel bzw. keine URL angegeben [<@${message.author.id}>]`));
     }
     else if (current_cmd == "stop") {
         stop(message, server_queue);
@@ -86,7 +105,12 @@ client.on("message", async (message) => {
         message.channel.send("Karl ist eine nette Person!", {tts: true})
     }
     else if (current_cmd == "8ball") {
-        message.channel.send(embedded_bold(do_8ball()));
+        if (arr.length != 0) {
+            await message.channel.send(do_8ball(message, arr.join(" ")));
+            message.delete();
+        }
+        else 
+            message.channel.send(embedded_msg(`Es wurde keine Frage angegeben [<@${message.author.id}>]`))
     }
     else if (current_cmd == "clear") {
         if (arr.length != 0) {
@@ -95,23 +119,29 @@ client.on("message", async (message) => {
                 do_clear(message.channel, num + 1);
             }
             else {
-                message.channel.send(embedded_msg("Keine Nummer angegeben!"));
+                message.channel.send(embedded_msg(`Es wurde keine Anzahl angegeben [<@${message.author.id}>]`));
             }
+        }
+        else {
+            message.channel.send(embedded_msg(`Es wurde keine Anzahl angegeben [<@${message.author.id}>]`));
         }
     }
     else if (current_cmd == "roll") {
         if (arr.length != 0) {
             let num = parseInt(arr[0]);
             if (!Number.isNaN(num)) {
-                message.channel.send(embedded_msg(do_roll(num)));
+                message.channel.send(embedded_msg(`${ do_roll(num) } [<@${message.author.id}>]`));
             }
             else {
-                message.channel.send(embedded_msg(do_roll()));
+                message.channel.send(embedded_msg(`${ do_roll() } [<@${message.author.id}>]`));
             }
         }
         else {
-            message.channel.send(embedded_msg(do_roll()));
+            message.channel.send(embedded_msg(`${ do_roll() } [<@${message.author.id}>]`));
         }
+    }
+    else if (current_cmd == "help") {
+        do_help(message);
     }
 });
 
@@ -119,12 +149,12 @@ async function execute(message, server_queue, cmd_len) {
     const voice_channel = message.member.voice.channel;
     if (!voice_channel)
       return message.channel.send(
-        embedded_msg("Du bist nicht in einem Voice Channel")
+        embedded_msg(`Du bist nicht in einem Voice Channel [<@${message.author.id}>]`)
       );
     const permissions = voice_channel.permissionsFor(message.client.user);
     if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
       return message.channel.send(
-        embedded_msg("Ich habe keine Rechte den Channel zu joinen")
+        embedded_msg(`Ich habe keine Rechte den Channel zu joinen [<@${message.author.id}>]`)
       );
     }
 
@@ -141,7 +171,8 @@ async function execute(message, server_queue, cmd_len) {
         const song_info = await ytdl.getInfo(arg);
         song = { 
             title: song_info.videoDetails.title, 
-            url: song_info.videoDetails.video_url 
+            url: song_info.videoDetails.video_url,
+            requester: message.author.id
         };
     }
     else {
@@ -149,7 +180,8 @@ async function execute(message, server_queue, cmd_len) {
         if (video) {
             song = { 
                 title: video.title, 
-                url: video.url 
+                url: video.url, 
+                requester: message.author.id
             };
         } 
         else {
@@ -193,7 +225,7 @@ async function execute(message, server_queue, cmd_len) {
         }
         else {
             server_queue.songs.push(song);
-            return message.channel.send(embedded_msg(`Zur Queue hinzugefügt: **${song.title}**`));
+            return message.channel.send(embedded_msg(`Zur Queue hinzugefügt: **${song.title}** [<@${message.author.id}>]`));
         }
     }
 }
@@ -201,24 +233,24 @@ async function execute(message, server_queue, cmd_len) {
 function skip(message, server_queue) {
     if (!message.member.voice.channel)
         return message.channel.send(
-        "Du bist nicht in einem Voice Channel");
+        `Du bist nicht in einem Voice Channel <@${message.author.id}>`);
 
     if (!server_queue) {
-        return message.channel.send(embedded_msg("Keine Lieder in der Queue"));
+        return message.channel.send(embedded_msg(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
     }
 
-    message.channel.send(embedded_msg(`Übersprungen: **${server_queue.songs[0].title}**`))
+    message.channel.send(embedded_msg(`Übersprungen: **${server_queue.songs[0].title}** [<@${message.author.id}>]`))
     server_queue.connection.dispatcher.end();
 }
 
 let should_stop = false;
 function stop(message, server_queue) {     
     if (!server_queue)
-        return message.channel.send(embedded_msg("Keine Lieder in der Queue"));
+        return message.channel.send(embedded_msg(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
       
     server_queue.songs = [];
     server_queue.connection.dispatcher.end();
-    message.channel.send(embedded_msg("Alle Lieder wurden aus der Queue gelöscht"));
+    message.channel.send(embedded_msg(`Alle Lieder wurden aus der Queue gelöscht [<@${message.author.id}>]`));
     should_stop = true;
 }
   
@@ -230,8 +262,6 @@ function play(guild, song) {
                 if (!has_new_song) {
                     server_queue.voice_channel.leave();
                     queue.delete(guild.id);
-
-                    server_queue.text_channel.send(embedded_msg("Zu lange inaktiv"));
                     return;
                 }
             }, 180000)
@@ -267,7 +297,7 @@ function play(guild, song) {
         .on("error", error => console.error(error));
         dispatcher.setVolumeLogarithmic(server_queue.volume / 5);
 
-        server_queue.text_channel.send(embedded_msg(`Spielt: **${song.title}**`));
+        server_queue.text_channel.send(embedded_msg(`Spielt: **${song.title}** [<@${song.requester}>]`));
     }
 }
   
