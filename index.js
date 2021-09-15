@@ -148,10 +148,8 @@ function skip(message, server_queue) {
         return message.channel.send(embedded_msg("Keine Lieder in der Queue"));
     }
 
-    message.channel.send(embedded_msg("Alle Lieder wurden aus der Queue gelöscht"))
+    message.channel.send(embedded_msg(`Übersprungen: **${song.title}**`))
     server_queue.connection.dispatcher.end();
-    server_queue.voice_channel.leave();
-    queue.delete(guild.id);
 }
   
 function stop(message, server_queue) {     
@@ -160,6 +158,9 @@ function stop(message, server_queue) {
       
     server_queue.songs = [];
     server_queue.connection.dispatcher.end();
+    message.channel.send(embedded_msg("Alle Lieder wurden aus der Queue gelöscht"))
+    server_queue.voice_channel.leave();
+    queue.delete(guild.id);
 }
   
 function play(guild, song) {
