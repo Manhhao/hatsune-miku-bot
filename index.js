@@ -15,6 +15,14 @@ client.once("ready", () => {
 let timeout_timer;
 let has_new_song = false;
 
+function embedded_msg(msg){
+    const message = new Discord.MessageEmbed()
+	.setColor('#0099ff')
+	.setDescription(msg)
+
+    return message;
+}; 
+
 client.on("message", async (message) => {
     if (!message.content.startsWith(prefix) || message.author.bot) {
         return;
@@ -26,19 +34,19 @@ client.on("message", async (message) => {
     const server_queue = queue.get(message.guild.id);
 
     if (current_cmd == "du") {
-        message.channel.send("hurensohn")
+        message.channel.send(embedded_msg("hurensohn"))
     }
     else if (current_cmd == "nico") {
-        message.channel.send("stinkt");
+        message.channel.send(embedded_msg("stinkt"));
     }
     else if (current_cmd == "ping") {
-        message.channel.send("pong");
+        message.channel.send(embedded_msg("pong"));
     }
     else if (current_cmd == "play" || current_cmd == "p") {
         if (arr.length != 0)
             execute(message, server_queue, current_cmd.length);
         else 
-            message.channel.send("Der Song fehlt");
+            message.channel.send(embedded_msg("Es wurde kein Song angegeben"));
     }
     else if (current_cmd == "stop") {
         stop(message, server_queue);
@@ -52,12 +60,12 @@ async function execute(message, server_queue, cmd_len) {
     const voice_channel = message.member.voice.channel;
     if (!voice_channel)
       return message.channel.send(
-        "Du bist nicht in einem Voice Channel"
+        embedded_msg("Du bist nicht in einem Voice Channel")
       );
     const permissions = voice_channel.permissionsFor(message.client.user);
     if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
       return message.channel.send(
-        "Ich habe keine Rechte den Channel zu joinen"
+        embedded_msg("Ich habe keine Rechte den Channel zu joinen")
       );
     }
 
@@ -86,7 +94,7 @@ async function execute(message, server_queue, cmd_len) {
             };
         } 
         else {
-             message.channel.send('kp irgendein fehler');
+             message.channel.send(embedded_msg('kp irgendein fehler'));
         }
     }
   
@@ -125,9 +133,8 @@ async function execute(message, server_queue, cmd_len) {
             play(message.guild, server_queue.songs[0]);
         }
         else {
-            has_new_song = true;
             server_queue.songs.push(song);
-            return message.channel.send(`Zur Queue hinzugefügt: **${song.title}**`);
+            return message.channel.send(embedded_msg(`Zur Queue hinzugefügt: **${song.title}**`));
         }
     }
 }
@@ -138,20 +145,20 @@ function skip(message, server_queue) {
         "Du bist nicht in einem Voice Channel");
 
     if (!server_queue) {
-        return message.channel.send("Keine Lieder in der Queue");
+        return message.channel.send(embedded_msg("Keine Lieder in der Queue"));
     }
     server_queue.connection.dispatcher.end();
 }
   
 function stop(message, server_queue) {     
     if (!server_queue)
-        return message.channel.send("Keine Lieder in der Queue");
+        return message.channel.send(embedded_msg("Keine Lieder in der Queue"));
       
     server_queue.songs = [];
     server_queue.connection.dispatcher.end();
 }
   
-function play(guild, song) {
+async function play(guild, song) {
     const server_queue = queue.get(guild.id);
     if (!song) {
         timeout_timer = setTimeout(() => { 
@@ -159,7 +166,7 @@ function play(guild, song) {
                 server_queue.voice_channel.leave();
                 queue.delete(guild.id);
 
-                server_queue.text_channel.send("zu lange inaktiv");
+                server_queue.text_channel.send(embedded_msg("Zu lange inaktiv"));
                 return;
             }
         }, 180000)
@@ -180,11 +187,16 @@ function play(guild, song) {
             });
             
             server_queue.songs.shift();
+
+            if (server_queue.songs[0])
+                has_new_song = true;
+
             play(guild, server_queue.songs[0]);
-        })
+        })  
         .on("error", error => console.error(error));
         dispatcher.setVolumeLogarithmic(server_queue.volume / 5);
-        server_queue.text_channel.send(`Spielt: **${song.title}**`);
+
+        server_queue.text_channel.send(embedded_msg(`Spielt: **${song.title}**`));
     }
 }
   
