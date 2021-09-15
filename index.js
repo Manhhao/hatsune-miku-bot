@@ -54,6 +54,9 @@ client.on("message", async (message) => {
     else if (current_cmd == "skip") {
         skip(message, server_queue);
     }
+    else if (current_cmd == "karl") {
+        message.channel.send("Karl ist ein Hurensohn!", {tts: true})
+    }
 });
 
 async function execute(message, server_queue, cmd_len) {
