@@ -40,8 +40,8 @@ function embedded_bold(msg){
 }; 
 
 function do_8ball(message, question) {
-    var answers = ['It is certain.', 'It is decidedly so.', 'Without a doubt.', 'Yes – definitely.', 'You may rely on it.', 'As I see it, yes.', 'Most likely.', 'Outlook good.',
-    'Yes.', 'Signs point to yes.', 'Reply hazy, try again.', 'Ask again later.', 'Better not tell you now.', 'Cannot predict now.', 'Concentrate and ask again.',
+    var answers = ['It is certain.', 'It is decidedly so.', 'Without a doubt.', 'Yes – definitely.', 'You may rely on it.', 'As I see it, yes.', 'Most likely.',
+    'Outlook good.', 'Yes.', 'Signs point to yes.', 'Reply hazy, try again.', 'Ask again later.', 'Better not tell you now.', 'Cannot predict now.', 'Concentrate and ask again.',
     'Don’t count on it.', 'My reply is no.', 'My sources say no.', 'Outlook not so good.', 'Very doubtful.'];
 
     const embed = new Discord.MessageEmbed()
@@ -63,7 +63,7 @@ function do_help(message) {
     .setDescription(`<@${message.author.id}>`)
     .addFields(
         { name: 'Musik', value: '-play [Songtitel bzw. URL] - Spielt ein Lied ab bzw. fügt ein Lied zur Queue hinzu\n-skip - Überspringt das jetzige Lied\n-stop - Löscht die Queue und disconnected den Bot' },
-        { name: 'Fun', value: '-8ball [frage] - Gibt eine Antwort zu einer Frage wieder\n-roll [optional: obere grenze] - Gibt eine zufällige Zahl zurück zwischen 1 und der oberen Grenze wieder (default: 100)'},
+        { name: 'Fun', value: '-8ball [Frage] - Gibt eine Antwort zu einer Frage wieder\n-roll [optional: obere grenze] - Gibt eine zufällige Zahl zurück zwischen 1 und der oberen Grenze wieder (default: 100)'},
         { name: 'Anderes', value: '-clear [Anzahl der Nachrichten] - Löscht eine Anzahl von Nachrichten im Channel'}
     )
 
@@ -108,6 +108,9 @@ client.on("message", async (message) => {
     }
     else if (current_cmd == "skip") {
         skip(message, server_queue);
+    }
+    else if (current_cmd == "disconnect") {
+        disconnect(message, server_queue);
     }
     else if (current_cmd == "karl") {
         message.channel.send("Karl ist eine nette Person!", {tts: true})
@@ -166,6 +169,10 @@ client.on("message", async (message) => {
         message.channel.send(embedded_msg("ist ein Gold Pleb"));
     }
 });
+
+function is_bot_in_voice() {
+    return client.voice.connections.some();
+}
 
 async function execute(message, server_queue, cmd_len) {
     const voice_channel = message.member.voice.channel;
@@ -253,6 +260,10 @@ async function execute(message, server_queue, cmd_len) {
 }
   
 function skip(message, server_queue) {
+    if (!is_bot_in_voice())
+        return message.channel.send(
+            `Der Bot befindet sich in keinem Channel [<@${message.author.id}>]`);
+
     if (!message.member.voice.channel)
         return message.channel.send(
         `Du bist nicht in einem Voice Channel <@${message.author.id}>`);
@@ -266,14 +277,30 @@ function skip(message, server_queue) {
 }
 
 let should_stop = false;
+function disconnect(message, server_queue) {   
+    if (!is_bot_in_voice())
+        return message.channel.send(
+            `Der Bot befindet sich in keinem Channel [<@${message.author.id}>]`);
+
+    if (!server_queue)
+        return message.channel.send(embedded_msg_error(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
+      
+    server_queue.songs = [];
+    server_queue.connection.dispatcher.end();
+    should_stop = true;
+}
+
 function stop(message, server_queue) {     
+    if (!is_bot_in_voice())
+        return message.channel.send(
+            `Der Bot befindet sich in keinem Channel [<@${message.author.id}>]`);
+            
     if (!server_queue)
         return message.channel.send(embedded_msg_error(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
       
     server_queue.songs = [];
     server_queue.connection.dispatcher.end();
     message.channel.send(embedded_msg(`Alle Lieder wurden aus der Queue gelöscht [<@${message.author.id}>]`));
-    should_stop = true;
 }
   
 function play(guild, song) {
