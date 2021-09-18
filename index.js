@@ -171,7 +171,7 @@ client.on("message", async (message) => {
 });
 
 function is_bot_in_voice() {
-    return client.voice.connections.some();
+    return client.voice.channel != null;
 }
 
 async function execute(message, server_queue, cmd_len) {
@@ -260,10 +260,6 @@ async function execute(message, server_queue, cmd_len) {
 }
   
 function skip(message, server_queue) {
-    if (!is_bot_in_voice())
-        return message.channel.send(
-            `Der Bot befindet sich in keinem Channel [<@${message.author.id}>]`);
-
     if (!message.member.voice.channel)
         return message.channel.send(
         `Du bist nicht in einem Voice Channel <@${message.author.id}>`);
@@ -278,10 +274,6 @@ function skip(message, server_queue) {
 
 let should_stop = false;
 function disconnect(message, server_queue) {   
-    if (!is_bot_in_voice())
-        return message.channel.send(
-            `Der Bot befindet sich in keinem Channel [<@${message.author.id}>]`);
-
     if (!server_queue)
         return message.channel.send(embedded_msg_error(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
       
@@ -291,10 +283,6 @@ function disconnect(message, server_queue) {
 }
 
 function stop(message, server_queue) {     
-    if (!is_bot_in_voice())
-        return message.channel.send(
-            `Der Bot befindet sich in keinem Channel [<@${message.author.id}>]`);
-            
     if (!server_queue)
         return message.channel.send(embedded_msg_error(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
       
