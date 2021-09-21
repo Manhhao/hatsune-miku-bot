@@ -170,8 +170,8 @@ client.on("message", async (message) => {
     }
 });
 
-function is_bot_in_voice() {
-    return client.voice.channel != null;
+function is_bot_in_voice(guild) {
+    return guild.channels.cache.some(channel => (channel.type === 'voice' && channel.members.has(client.user.id)));
 }
 
 async function execute(message, server_queue, cmd_len) {
@@ -261,10 +261,14 @@ async function execute(message, server_queue, cmd_len) {
   
 function skip(message, server_queue) {
     if (!message.member.voice.channel)
-        return message.channel.send(
-        `Du bist nicht in einem Voice Channel <@${message.author.id}>`);
+    return message.channel.send(embedded_msg_error(
+    `Du bist nicht in einem Voice Channel <@${message.author.id}>`));
 
-    if (!server_queue) {
+    if (!is_bot_in_voice(message.guild))
+        return message.channel.send(embedded_msg_error(
+            `Der Bot befindet sich in keinem Channel [<@${message.author.id}>]`));
+
+    if (!server_queue || server_queue.songs.length == 0) {
         return message.channel.send(embedded_msg_error(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
     }
 
@@ -274,18 +278,28 @@ function skip(message, server_queue) {
 
 let should_stop = false;
 function disconnect(message, server_queue) {   
-    if (!server_queue)
-        return message.channel.send(embedded_msg_error(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
-      
-    server_queue.songs = [];
-    server_queue.connection.dispatcher.end();
-    should_stop = true;
+    if (!is_bot_in_voice(message.guild))
+    return message.channel.send(embedded_msg_error(
+        `Der Bot befindet sich in keinem Channel [<@${message.author.id}>]`));
+    
+    if (server_queue) {
+        server_queue.voice_channel.leave();
+        queue.delete(message.guild.id);
+
+        message.channel.send(embedded_msg_error(
+            `Der Bot wurde disconnected [<@${message.author.id}>]`));
+    }
 }
 
 function stop(message, server_queue) {     
-    if (!server_queue)
+    if (!is_bot_in_voice(message.guild))
+    return message.channel.send(embedded_msg_error(
+        `Der Bot befindet sich in keinem Channel [<@${message.author.id}>]`));
+
+    if (!server_queue || server_queue.songs.length == 0) {
         return message.channel.send(embedded_msg_error(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
-      
+    }
+
     server_queue.songs = [];
     server_queue.connection.dispatcher.end();
     message.channel.send(embedded_msg(`Alle Lieder wurden aus der Queue gelöscht [<@${message.author.id}>]`));
