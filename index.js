@@ -211,7 +211,7 @@ async function execute(message, server_queue, cmd_len) {
                 title: video.title, 
                 url: video.url, 
                 requester: message.author.id
-            };
+            }; 
         } 
         else {
              message.channel.send(embedded_msg('kp irgendein fehler'));
@@ -228,13 +228,20 @@ async function execute(message, server_queue, cmd_len) {
         };
   
         queue.set(message.guild.id, queue_item);
-  
+
         queue_item.songs.push(song);
   
         try {
             var connection = await voice_channel.join();
             queue_item.connection = connection;
             has_new_song = true;
+
+            queue_item.connection.on("disconnect", () => {
+                console.log("disconnected from voice channel");
+                if (queue)
+                    queue.delete(message.guild.id);
+            });
+
             play(message.guild, queue_item.songs[0]);
         } 
         catch (err) {
@@ -259,6 +266,10 @@ async function execute(message, server_queue, cmd_len) {
     }
 }
   
+client.on("voiceUpdate", async (message) => { 
+
+});
+
 function skip(message, server_queue) {
     if (!message.member.voice.channel)
     return message.channel.send(embedded_msg_error(
@@ -276,7 +287,6 @@ function skip(message, server_queue) {
     server_queue.connection.dispatcher.end();
 }
 
-let should_stop = false;
 function disconnect(message, server_queue) {   
     if (!is_bot_in_voice(message.guild))
     return message.channel.send(embedded_msg_error(
@@ -284,7 +294,6 @@ function disconnect(message, server_queue) {
     
     if (server_queue) {
         server_queue.voice_channel.leave();
-        queue.delete(message.guild.id);
 
         message.channel.send(embedded_msg_error(
             `Der Bot wurde disconnected [<@${message.author.id}>]`));
@@ -307,22 +316,15 @@ function stop(message, server_queue) {
   
 function play(guild, song) {
     const server_queue = queue.get(guild.id);
+
     if (!song) {
-        if (!should_stop) {
-            timeout_timer = setTimeout(() => { 
-                if (!has_new_song) {
-                    server_queue.voice_channel.leave();
-                    queue.delete(guild.id);
-                    return;
-                }
-            }, 180000)
-            return;
-        }
-        else {
-            should_stop = false;
-            server_queue.voice_channel.leave();
-            queue.delete(guild.id);
-        }
+        timeout_timer = setTimeout(() => { 
+            if (!has_new_song) {
+                server_queue.voice_channel.leave();
+                return;
+            }
+        }, 10000)
+        return;
     }
 
     if (has_new_song) {
@@ -330,14 +332,6 @@ function play(guild, song) {
         const dispatcher = server_queue.connection
         .play(ytdl(song.url))
         .on("finish", () => {
-            server_queue.text_channel.messages.fetch({ limit: 20 }).then(msgs => {
-                msgs.forEach((message) => {
-                    if (message.content.includes(song.title) && message.content.includes("Spielt:")) {
-                        message.delete();
-                    }
-                });
-            });
-            
             server_queue.songs.shift();
 
             if (server_queue.songs[0])
