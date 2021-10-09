@@ -14,6 +14,7 @@ client.once("ready", () => {
 //const prefix = '-';
 let timeout_timer;
 let has_new_song = false;
+let playing_message = undefined;
 
 function embedded_msg(msg){
     const message = new Discord.MessageEmbed()
@@ -238,6 +239,12 @@ async function execute(message, server_queue, cmd_len) {
 
             queue_item.connection.on("disconnect", () => {
                 console.log("disconnected from voice channel");
+
+                if (playing_message) {
+                    playing_message.delete();
+                    playing_message = undefined;
+                }
+                
                 if (queue)
                     queue.delete(message.guild.id);
             });
@@ -278,8 +285,6 @@ client.on('voiceStateUpdate', (old_state, new_state) => {
   
     }
 })
-
-let playing_message = undefined;
 
 async function skip(message, server_queue) {
     if (!message.member.voice.channel)
