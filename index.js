@@ -265,10 +265,19 @@ async function execute(message, server_queue, cmd_len) {
         }
     }
 }
-  
-client.on("voiceUpdate", async (message) => { 
 
-});
+// todo: track if theovgt is alone in voicechannel and for how long
+client.on('voiceStateUpdate', (old_state, new_state) => {
+    let old_channel = old_state.channel
+    let new_channel = new_state.channel
+  
+    if(old_channel == undefined && new_channel) {
+  
+    } 
+    else if(old_channel && new_channel == undefined){
+  
+    }
+})
 
 function skip(message, server_queue) {
     if (!message.member.voice.channel)
@@ -323,7 +332,7 @@ function play(guild, song) {
                 server_queue.voice_channel.leave();
                 return;
             }
-        }, 10000)
+        }, 120000)
         return;
     }
 
