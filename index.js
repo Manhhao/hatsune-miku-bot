@@ -279,6 +279,8 @@ client.on('voiceStateUpdate', (old_state, new_state) => {
     }
 })
 
+playing_message = undefined;
+
 function skip(message, server_queue) {
     if (!message.member.voice.channel)
     return message.channel.send(embedded_msg_error(
@@ -293,6 +295,10 @@ function skip(message, server_queue) {
     }
     // message.channel.send(embedded_msg(`Übersprungen: **${server_queue.songs[0].title}** [<@${message.author.id}>]`))
     message.react("👌");
+    
+    if (playing_message)
+        playing_message.delete();
+
     server_queue.connection.dispatcher.end();
 }
 
@@ -306,7 +312,9 @@ function disconnect(message, server_queue) {
 
         //message.channel.send(embedded_msg_error(
         //    `Der Bot wurde disconnected [<@${message.author.id}>]`));
-        
+        if (playing_message)
+            playing_message.delete();
+
         message.react("👋");
     }
 }
@@ -322,11 +330,13 @@ function stop(message, server_queue) {
 
     server_queue.songs = [];
     message.react("👌");
+
+    if (playing_message)
+        playing_message.delete();
+
     server_queue.connection.dispatcher.end();
     //message.channel.send(embedded_msg(`Alle Lieder wurden aus der Queue gelöscht [<@${message.author.id}>]`));
 }
-
-playing_message = undefined;
 
 function play(guild, song) {
     const server_queue = queue.get(guild.id);
@@ -352,6 +362,7 @@ function play(guild, song) {
                 has_new_song = true;
 
             playing_message.delete();
+            playing_message = undefined;
 
             play(guild, server_queue.songs[0]);
         })  
