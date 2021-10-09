@@ -83,8 +83,8 @@ client.on("message", async (message) => {
         return;
     }
     const arr = message.content.slice(prefix.length).split(" ");
-
-    const current_cmd = arr.shift();
+    
+    const current_cmd = arr.shift().toLowerCase();
 
     const server_queue = queue.get(message.guild.id);
 
@@ -291,8 +291,8 @@ function skip(message, server_queue) {
     if (!server_queue || server_queue.songs.length == 0) {
         return message.channel.send(embedded_msg_error(`Es sind keine Lieder in der Queue [<@${message.author.id}>]`));
     }
-
-    message.channel.send(embedded_msg(`Übersprungen: **${server_queue.songs[0].title}** [<@${message.author.id}>]`))
+    // message.channel.send(embedded_msg(`Übersprungen: **${server_queue.songs[0].title}** [<@${message.author.id}>]`))
+    message.react("👌");
     server_queue.connection.dispatcher.end();
 }
 
@@ -304,8 +304,10 @@ function disconnect(message, server_queue) {
     if (server_queue) {
         server_queue.voice_channel.leave();
 
-        message.channel.send(embedded_msg_error(
-            `Der Bot wurde disconnected [<@${message.author.id}>]`));
+        //message.channel.send(embedded_msg_error(
+        //    `Der Bot wurde disconnected [<@${message.author.id}>]`));
+        
+        message.react("👋");
     }
 }
 
@@ -319,10 +321,13 @@ function stop(message, server_queue) {
     }
 
     server_queue.songs = [];
+    message.react("👌");
     server_queue.connection.dispatcher.end();
-    message.channel.send(embedded_msg(`Alle Lieder wurden aus der Queue gelöscht [<@${message.author.id}>]`));
+    //message.channel.send(embedded_msg(`Alle Lieder wurden aus der Queue gelöscht [<@${message.author.id}>]`));
 }
-  
+
+playing_message = undefined;
+
 function play(guild, song) {
     const server_queue = queue.get(guild.id);
 
@@ -346,12 +351,16 @@ function play(guild, song) {
             if (server_queue.songs[0])
                 has_new_song = true;
 
+            playing_message.delete();
+
             play(guild, server_queue.songs[0]);
         })  
         .on("error", error => console.error(error));
         dispatcher.setVolumeLogarithmic(server_queue.volume / 5);
 
-        server_queue.text_channel.send(embedded_msg(`Spielt: **${song.title}** [<@${song.requester}>]`));
+        server_queue.text_channel.send(embedded_msg(`Spielt: **${song.title}** [<@${song.requester}>]`)).then(msg => {
+            playing_message = msg;
+        });
     }
 }
   
