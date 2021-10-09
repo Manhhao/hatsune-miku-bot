@@ -279,9 +279,9 @@ client.on('voiceStateUpdate', (old_state, new_state) => {
     }
 })
 
-playing_message = undefined;
+let playing_message = undefined;
 
-function skip(message, server_queue) {
+async function skip(message, server_queue) {
     if (!message.member.voice.channel)
     return message.channel.send(embedded_msg_error(
     `Du bist nicht in einem Voice Channel <@${message.author.id}>`));
@@ -295,14 +295,11 @@ function skip(message, server_queue) {
     }
     // message.channel.send(embedded_msg(`Übersprungen: **${server_queue.songs[0].title}** [<@${message.author.id}>]`))
     message.react("👌");
-    
-    if (playing_message)
-        playing_message.delete();
 
     server_queue.connection.dispatcher.end();
 }
 
-function disconnect(message, server_queue) {   
+async function disconnect(message, server_queue) {   
     if (!is_bot_in_voice(message.guild))
     return message.channel.send(embedded_msg_error(
         `Der Bot befindet sich in keinem Channel [<@${message.author.id}>]`));
@@ -312,14 +309,17 @@ function disconnect(message, server_queue) {
 
         //message.channel.send(embedded_msg_error(
         //    `Der Bot wurde disconnected [<@${message.author.id}>]`));
-        if (playing_message)
+
+        if (playing_message) {
             playing_message.delete();
+            playing_message = undefined;
+        }
 
         message.react("👋");
     }
 }
 
-function stop(message, server_queue) {     
+async function stop(message, server_queue) {     
     if (!is_bot_in_voice(message.guild))
     return message.channel.send(embedded_msg_error(
         `Der Bot befindet sich in keinem Channel [<@${message.author.id}>]`));
@@ -331,14 +331,11 @@ function stop(message, server_queue) {
     server_queue.songs = [];
     message.react("👌");
 
-    if (playing_message)
-        playing_message.delete();
-
     server_queue.connection.dispatcher.end();
     //message.channel.send(embedded_msg(`Alle Lieder wurden aus der Queue gelöscht [<@${message.author.id}>]`));
 }
 
-function play(guild, song) {
+async function play(guild, song) {
     const server_queue = queue.get(guild.id);
 
     if (!song) {
