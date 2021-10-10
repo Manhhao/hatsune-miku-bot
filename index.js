@@ -334,9 +334,8 @@ async function stop(message, server_queue) {
     }
 
     server_queue.songs = [];
-    message.react("👌");
-
     server_queue.connection.dispatcher.end();
+    message.react("👌");
     //message.channel.send(embedded_msg(`Alle Lieder wurden aus der Queue gelöscht [<@${message.author.id}>]`));
 }
 
@@ -356,7 +355,10 @@ async function play(guild, song) {
     if (has_new_song) {
         has_new_song = false;
         const dispatcher = server_queue.connection
-        .play(ytdl(song.url))
+        .play(ytdl(song.url),{
+            quality: 'highestaudio',
+            highWaterMark: 1 << 25
+        })
         .on("finish", () => {
             server_queue.songs.shift();
 
