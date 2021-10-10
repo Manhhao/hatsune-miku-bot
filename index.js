@@ -356,7 +356,6 @@ async function play(guild, song) {
         has_new_song = false;
         const dispatcher = server_queue.connection
         .play(ytdl(song.url),{
-            quality: 'highestaudio',
             highWaterMark: 1 << 25
         })
         .on("finish", () => {
