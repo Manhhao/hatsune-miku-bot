@@ -356,8 +356,14 @@ async function play(guild, song) {
         has_new_song = false;
         const dispatcher = server_queue.connection
         .play(ytdl(song.url),{
-            highWaterMark: 1 << 25
-        })
+            quality: 'highestaudio',
+            filter: 'audioonly',
+            requestOptions: {
+              headers: {
+                cookie: process.env.YOUTUBE_LOGIN_COOKIE,
+              },
+            },
+          })
         .on("finish", () => {
             server_queue.songs.shift();
 
