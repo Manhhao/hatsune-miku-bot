@@ -356,9 +356,7 @@ async function play(guild, song) {
         has_new_song = false;
         const dispatcher = server_queue.connection
         .play(await ytdl(song.url),{
-            quality: 'highestaudio',
-            highWaterMark: 1024 * 1024 * 5,
-            bitrate: 64000,
+            highWaterMark: 1<<25,
             requestOptions: {
               headers: {
                 cookie: process.env.YOUTUBE_LOGIN_COOKIE,
