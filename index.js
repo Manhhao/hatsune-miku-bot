@@ -356,7 +356,6 @@ async function play(guild, song) {
         has_new_song = false;
         const dispatcher = server_queue.connection
         .play(await ytdl(song.url),{
-            highWaterMark: 1<<25,
             requestOptions: {
               headers: {
                 cookie: process.env.YOUTUBE_LOGIN_COOKIE,
