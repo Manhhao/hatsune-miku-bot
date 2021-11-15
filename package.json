@@ -2,7 +2,7 @@
   "name": "hatsune-miku-2",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
     "test": "node main.js"
   },
