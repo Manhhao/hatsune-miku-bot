@@ -17,7 +17,7 @@ module.exports = {
             del.delByAuthor('Spielt:',interaction.channel,20);
             await interaction.reply({embeds : [embed.forcedstop(interaction)]});
         } else {
-            interaction.reply({embeds : [embed.embedError(`Der Bot befindet sich in keinem Voice Channel <@${interaction.member.id}>`)], ephemeral: true});
+            interaction.reply({embeds : [embed.embedError(`Der Bot befindet sich in keinem Voice Channel!`, interaction)], ephemeral: true});
         }
 
     }

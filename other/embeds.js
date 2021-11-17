@@ -50,9 +50,11 @@ module.exports = {
         return embed;
     },
 
-    embedError : function(reason){
-        con.log(`embedError: ${reason}`);
-        return embedded_msg_error(reason);
+    embedError : function(reason, interaction){
+        return new MessageEmbed()
+            .setColor('#dc143c')
+            .setTitle(reason)
+            .setFooter(`${interaction.user.username}`,`https://cdn.discordapp.com/avatars/${interaction.user.id}/${interaction.user.avatar}.png`)
     },
 
     embedMessage : function(reason){
@@ -137,8 +139,15 @@ module.exports = {
     skip : function(interaction){
         return new MessageEmbed()
             .setColor('#0099ff')
-            .setAuthor(`Übersprungen:`)
-            .setTitle(`${interaction.user.username} skipped!`)
+            .setTitle(`:white_check_mark:`)
+            .setFooter(`${interaction.user.username}`,`https://cdn.discordapp.com/avatars/${interaction.user.id}/${interaction.user.avatar}.png`)
+    },
+
+    checkmark : function(interaction){
+        return new MessageEmbed()
+            .setColor('#00FF7F')
+            .setTitle(`:white_check_mark:`)
+            .setFooter(`${interaction.user.username}`,`https://cdn.discordapp.com/avatars/${interaction.user.id}/${interaction.user.avatar}.png`)
     },
 
     forcedstop : function(interaction){

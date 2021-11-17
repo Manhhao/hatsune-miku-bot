@@ -10,12 +10,12 @@ module.exports = {
 
         const connected = await music.isConnected({interaction: interaction});
         if (!connected){
-            await interaction.reply({embeds : [embed.wrongUsage(`Der Bot befindet sich in keinem Voice Channel <@${interaction.member.id}>`)], ephemeral : true});
+            await interaction.reply({embeds : [embed.embedError(`Der Bot befindet sich in keinem Voice Channel!`, interaction)], ephemeral : true});
             return;
         }
 
         await music.skip({interaction : interaction});
 
-        await interaction.reply({embeds: [embed.embedMessage("Überspringe den jetzigen Song")]});
+        await interaction.reply({embeds: [embed.checkmark(interaction)]});
     }
-}
+}   

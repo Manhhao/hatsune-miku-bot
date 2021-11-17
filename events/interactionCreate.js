@@ -25,7 +25,7 @@ module.exports = {
             await command.execute(interaction);
         } catch (error) {
             con.error(`${interaction.user.tag} tried executing /${cmdTag}, but it failed!`);
-            await interaction.reply({content: 'There was an error!', ephemeral: true});
+            await interaction.reply({content: 'wenn das hier ausgeführt wird hab ich was ganz falsch gemacht', ephemeral: true});
         }
     },
 };
